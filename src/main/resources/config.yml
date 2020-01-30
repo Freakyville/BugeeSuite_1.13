@@ -1,0 +1,4 @@
+host: ''
+password: ''
+port: 3306
+timeout: 5000

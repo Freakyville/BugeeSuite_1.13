@@ -5,6 +5,7 @@ import com.minecraftdimensions.bungeesuite.objects.BSPlayer;
 import com.minecraftdimensions.bungeesuite.objects.Location;
 import com.minecraftdimensions.bungeesuite.objects.Messages;
 import com.minecraftdimensions.bungeesuite.objects.Warp;
+import com.minecraftdimensions.bungeesuite.redis.RedisManager;
 import com.minecraftdimensions.bungeesuite.tasks.SendPluginMessage;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -161,21 +162,17 @@ public class WarpsManager {
                 s.sendMessage(Messages.PLAYER_WARPED_OTHER.replace("{player}", p.getName()).replace("{warp}", w.getName()));
             }
         }
-        ByteArrayOutputStream b = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(b);
-        try {
-            out.writeUTF("TeleportPlayerToLocation");
-            out.writeUTF(p.getName());
-            out.writeUTF(l.getWorld());
-            out.writeDouble(l.getX());
-            out.writeDouble(l.getY());
-            out.writeDouble(l.getZ());
-            out.writeFloat(l.getYaw());
-            out.writeFloat(l.getPitch());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        sendPluginMessageTaskTP(l.getServer(), b);
+        StringBuilder stringToSend = new StringBuilder();
+        stringToSend.append("TeleportPlayerToLocation;");
+        stringToSend.append(l.getServer().getName()).append(";");
+        stringToSend.append(p.getName()).append(";");
+        stringToSend.append(l.getWorld()).append(";");
+        stringToSend.append(l.getX()).append(";");
+        stringToSend.append(l.getY()).append(";");
+        stringToSend.append(l.getZ()).append(";");
+        stringToSend.append(l.getYaw()).append(";");
+        stringToSend.append(l.getPitch());
+        RedisManager.getInstance().publish(stringToSend.toString(), "WARP_RESPONSE");
         if (!l.getServer().equals(p.getServer().getInfo())) {
             p.sendToServer(l.getServer().getName());
         }

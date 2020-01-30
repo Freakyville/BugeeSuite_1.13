@@ -19,6 +19,11 @@ public class MainConfig {
     public static boolean newPlayerBroadcast = config.getBoolean( "NewPlayerBroadcast", true );
     public static boolean broadcastProxyConnectionMessages = config.getBoolean( "BroadcastProxyConnectionMessages", true );
     public static int playerDisconnectDelay = config.getInt( "PlayerDisconnectDelay", 10 );
+    /* Redis Information */
+    public static String redis_host = config.getString( "Redis.Host", "127.0.0.1" );
+    public static int redis_port = config.getInt( "Redis.Port", 0000 );
+    public static String redis_password = config.getString( "Redis.Password", "password" );
+    public static int redis_timeout = config.getInt( "Redis.Timeout", 5000 );
 
     public static void reloadConfig() {
         config = null;
