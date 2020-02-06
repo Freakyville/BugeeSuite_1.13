@@ -5,6 +5,7 @@ import com.minecraftdimensions.bungeesuite.configs.TeleportConfig;
 import com.minecraftdimensions.bungeesuite.objects.BSPlayer;
 import com.minecraftdimensions.bungeesuite.objects.Location;
 import com.minecraftdimensions.bungeesuite.objects.Messages;
+import com.minecraftdimensions.bungeesuite.redis.RedisManager;
 import com.minecraftdimensions.bungeesuite.tasks.SendPluginMessage;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
@@ -208,17 +209,12 @@ public class TeleportManager {
         ProxyServer.getInstance().getScheduler().schedule( BungeeSuite.instance, new Runnable() {
             @Override
             public void run() {
-            	
-                ByteArrayOutputStream b = new ByteArrayOutputStream();
-                DataOutputStream out = new DataOutputStream( b );
-                try {
-                    out.writeUTF( "TeleportToPlayer" );
-                    out.writeUTF( p.getName() );
-                    out.writeUTF( t.getName() );
-                } catch ( IOException e ) {
-                    e.printStackTrace();
-                }
-                sendPluginMessageTaskTP( t.getServer().getInfo(), b );
+                StringBuilder sb = new StringBuilder();
+                sb.append("TeleportToPlayer").append(";");
+                sb.append(t.getProxiedPlayer().getServer().getInfo().getName()).append(";");
+                sb.append(p.getName()).append(";");
+                sb.append(t.getName());
+                RedisManager.getInstance().publish(sb.toString(), "TELEPORT_RESPONSE");
                 if ( !p.getServer().getInfo().equals( t.getServer().getInfo() ) ) {
                     p.getProxiedPlayer().connect( t.getServer().getInfo() );
                 }
@@ -243,17 +239,12 @@ public class TeleportManager {
     }
 
     public static void teleportPlayerToLocation( BSPlayer p, Location t ) {
-
-        ByteArrayOutputStream b = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream( b );
-        try {
-            out.writeUTF( "TeleportToLocation" );
-            out.writeUTF( p.getName() );
-            out.writeUTF( t.serialise() );
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
-        sendPluginMessageTaskTP( t.getServer(), b );
+        StringBuilder sb = new StringBuilder();
+        sb.append("TeleportToLocation").append(";");
+        sb.append(t.getServer().getName()).append(";");
+        sb.append(p.getName()).append(";");
+        sb.append(t.serialise());
+        RedisManager.getInstance().publish(sb.toString(), "TELEPORT_RESPONSE");
         if ( !p.getServer().getInfo().equals( t.getServer() ) ) {
             p.getProxiedPlayer().connect( t.getServer() );
         }
