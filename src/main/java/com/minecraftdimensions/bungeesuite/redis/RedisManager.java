@@ -1,12 +1,8 @@
 package com.minecraftdimensions.bungeesuite.redis;
 
-import com.minecraftdimensions.bungeesuite.managers.LoggingManager;
-import com.minecraftdimensions.bungeesuite.managers.PlayerManager;
-import com.minecraftdimensions.bungeesuite.managers.TeleportManager;
-import com.minecraftdimensions.bungeesuite.managers.WarpsManager;
+import com.minecraftdimensions.bungeesuite.managers.*;
 import com.minecraftdimensions.bungeesuite.objects.Location;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.Server;
 import redis.clients.jedis.*;
 
 import java.time.Duration;
@@ -68,7 +64,7 @@ public class RedisManager {
                         if (channel.equalsIgnoreCase("WARP_REQUEST")) {
                             ProxyServer.getInstance().getLogger().info("WARP REDIS REQUEST: " + message);
                             if (args[0].equalsIgnoreCase("WarpPlayer")) {
-                                WarpsManager.sendPlayerToWarp(args[1], args[2], args[3], Boolean.parseBoolean(args[4]), Boolean.parseBoolean(args[5]));
+                                WarpsManager.sendPlayerToWarp(args[1], args[2], args[3], Boolean.parseBoolean(args[4]), Boolean.parseBoolean(args[5]), Integer.parseInt(args[6]));
                             } else if (args[0].equalsIgnoreCase("SetWarp")) {
                                 WarpsManager.setWarp(PlayerManager.getPlayer(args[1]), args[2], new Location(args[3], args[4], Double.parseDouble(args[5]), Double.parseDouble(args[6]), Double.parseDouble(args[7]), Long.parseLong(args[8]), Long.parseLong(args[9])), Boolean.parseBoolean(args[10]), Boolean.parseBoolean(args[11]));
                             } else if (args[0].equalsIgnoreCase("DeleteWarp")) {
@@ -92,9 +88,9 @@ public class RedisManager {
                             } else if (args[0].equalsIgnoreCase("TeleportToPlayer")) {
                                 TeleportManager.teleportPlayerToPlayer(args[1], args[2], args[2], Boolean.parseBoolean(args[3]), Boolean.parseBoolean(args[4]));
                             } else if (args[0].equalsIgnoreCase("TpaHereRequest")) {
-                                TeleportManager.requestPlayerTeleportToYou(args[1], args[2]);
+                                TeleportManager.requestPlayerTeleportToYou(args[1], args[2], Integer.parseInt(args[3]));
                             } else if (args[0].equalsIgnoreCase("TpaRequest")) {
-                                TeleportManager.requestToTeleportToPlayer(args[1], args[2]);
+                                TeleportManager.requestToTeleportToPlayer(args[1], args[2], Integer.parseInt(args[3]));
                             } else if (args[0].equalsIgnoreCase("TpDeny")) {
                                 TeleportManager.denyTeleportRequest(PlayerManager.getPlayer(args[1]));
                             } else if (args[0].equalsIgnoreCase("TpAll")) {
@@ -103,6 +99,20 @@ public class RedisManager {
                                 TeleportManager.sendPlayerToLastBack(PlayerManager.getPlayer(args[1]), Boolean.parseBoolean(args[3]), Boolean.parseBoolean(args[4]));
                             } else if (args[0].equalsIgnoreCase("ToggleTeleports")) {
                                 TeleportManager.togglePlayersTeleports(PlayerManager.getPlayer(args[1]));
+                            }
+                        } else if (channel.equalsIgnoreCase("HOME_REQUEST")) {
+                            ProxyServer.getInstance().getLogger().info("HOME REDIS REQUEST: " + message);
+
+                            if (args[0].equalsIgnoreCase("deletehome")) {
+                                HomesManager.deleteHome(args[1], args[2]);
+                            } else if (args[0].equalsIgnoreCase("sendplayerhome")) {
+                                HomesManager.sendPlayerToHome(PlayerManager.getPlayer(args[1]), args[2], Integer.parseInt(args[3]));
+                            } else if (args[0].equalsIgnoreCase("setplayershome")) {
+                                HomesManager.createNewHome(args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), args[4], new Location(ProxyServer.getInstance().getPlayer(args[1]).getServer().getInfo().getName(), args[5], Double.parseDouble(args[6]), Double.parseDouble(args[7]), Double.parseDouble(args[8]), Float.parseFloat(args[9]), Float.parseFloat(args[9])));
+                            } else if (args[0].equalsIgnoreCase("getin.readInt()homeslist")) {
+                                HomesManager.listPlayersHomes(PlayerManager.getPlayer(args[1]));
+                            } else if (args[0].equalsIgnoreCase("sendversion")) {
+                                LoggingManager.log(args[1]);
                             }
                         } else {
                             ProxyServer.getInstance().getLogger().info("UNKNOWN REDIS REQUEST: " + message);

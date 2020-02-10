@@ -11,15 +11,15 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.config.ServerInfo;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 
 public class WarpsManager {
     static HashMap<String, Warp> warps;
     public static String OUTGOING_CHANNEL = "bsuite:warps-out";
+
 
     public static void loadWarpLocations() throws SQLException {
         warps = new HashMap<String, Warp>();
@@ -124,7 +124,7 @@ public class WarpsManager {
     }
 
 
-    public static void sendPlayerToWarp(String sender, String player, String warp, boolean permission, boolean bypass) {
+    public static void sendPlayerToWarp(String sender, String player, String warp, boolean permission, boolean bypass, int cd) {
 
         BSPlayer s = PlayerManager.getPlayer(sender);
         BSPlayer p = PlayerManager.getSimilarPlayer(player);
@@ -155,6 +155,13 @@ public class WarpsManager {
                 return;
             }
         }
+        if (!sender.equalsIgnoreCase("CONSOLE")) {
+            if (CooldownManager.getInstance().isOnCooldown("WARP", cd, s.getProxiedPlayer().getUniqueId())) {
+                s.sendMessage(Messages.COOLDOWN.replace("{cooldown}", ""));
+                return;
+            }
+        }
+        CooldownManager.getInstance().setCooldown("WARP", s.getProxiedPlayer().getUniqueId(), LocalDateTime.now());
         Location l = w.getLocation();
         p.sendMessage(Messages.PLAYER_WARPED.replace("{warp}", w.getName()));
         if (!p.equals(s)) {

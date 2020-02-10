@@ -135,6 +135,8 @@ public class Messages {
     public static String HOME_DOES_NOT_EXIST = colorize( m.getString( "HOME_DOES_NOT_EXIST", "&c" + "That home does not exist" ) );
     public static String HOME_DELETED = colorize( m.getString( "HOME_DELETED", "&c" + "Your home has been deleted" ) );
 
+    public static String COOLDOWN = colorize( m.getString( "HOME_COOLDOWN", "&cDu kan ikke bruge denne kommando endnu, vent venligst {cooldown}" ) );
+
     public static String colorize( String input ) {
         return ChatColor.translateAlternateColorCodes( '&', input );
     }
@@ -268,5 +270,7 @@ public class Messages {
         HOME_SET = colorize( m.getString( "HOME_SET", "&2" + "Your home has been set" ) );
         HOME_DOES_NOT_EXIST = colorize( m.getString( "HOME_DOES_NOT_EXIST", "&c" + "That home does not exist" ) );
         HOME_DELETED = colorize( m.getString( "HOME_DELETED", "&c" + "Your home has been deleted" ) );
+
+        COOLDOWN = colorize(m.getString("HOME_COOLDOWN", "&cDu kan ikke bruge denne kommando endnu, vent venligst {cooldown}"));
     }
 }

@@ -6,6 +6,7 @@ import com.minecraftdimensions.bungeesuite.objects.BSPlayer;
 import com.minecraftdimensions.bungeesuite.objects.Home;
 import com.minecraftdimensions.bungeesuite.objects.Location;
 import com.minecraftdimensions.bungeesuite.objects.Messages;
+import com.minecraftdimensions.bungeesuite.redis.RedisManager;
 import com.minecraftdimensions.bungeesuite.tasks.SendPluginMessage;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -16,6 +17,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -124,10 +126,14 @@ public class HomesManager {
         return null;
     }
 
-    public static void sendPlayerToHome( BSPlayer player, String home ) {
+    public static void sendPlayerToHome( BSPlayer player, String home, int cd ) {
         Home h = getSimilarHome( player, home );
         if ( h == null ) {
             player.sendMessage( Messages.HOME_DOES_NOT_EXIST );
+            return;
+        }
+        if (CooldownManager.getInstance().isOnCooldown("HOME", cd, player.getProxiedPlayer().getUniqueId())) {
+            player.sendMessage(Messages.COOLDOWN.replace("{cooldown}", ""));
             return;
         }
         
@@ -138,23 +144,9 @@ public class HomesManager {
         ProxyServer.getInstance().getScheduler().schedule( BungeeSuite.instance, new Runnable() {
             @Override
             public void run() {
-            	
                 Location l = h.loc;
-                ByteArrayOutputStream b = new ByteArrayOutputStream();
-                DataOutputStream out = new DataOutputStream( b );
-                try {
-                    out.writeUTF( "TeleportToLocation" );
-                    out.writeUTF( player.getName() );
-                    out.writeUTF( l.getWorld() );
-                    out.writeDouble( l.getX() );
-                    out.writeDouble( l.getY() );
-                    out.writeDouble( l.getZ() );
-                    out.writeFloat( l.getYaw() );
-                    out.writeFloat( l.getPitch() );
-                } catch ( IOException e ) {
-                    e.printStackTrace();
-                }
-                sendPluginMessageTaskHomes( l.getServer(), b );
+                TeleportManager.teleportPlayerToLocation(player, h.loc);
+                CooldownManager.getInstance().setCooldown("HOME", player.getProxiedPlayer().getUniqueId(), LocalDateTime.now());
                 if ( !player.getServer().getInfo().equals( l.getServer() ) ) {
                     player.getProxiedPlayer().connect( l.getServer() );
                 }
