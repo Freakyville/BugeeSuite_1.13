@@ -93,9 +93,6 @@ public class BungeeSuite extends Plugin {
         proxy.getPluginManager().registerListener(this, new ChatMessageListener());
         proxy.getPluginManager().registerListener(this, new BansMessageListener());
         proxy.getPluginManager().registerListener(this, new BansListener());
-        proxy.getPluginManager().registerListener(this, new TeleportsMessageListener());
-//        proxy.getPluginManager().registerListener( this, new WarpsMessageListener() );
-        proxy.getPluginManager().registerListener(this, new HomesMessageListener());
         proxy.getPluginManager().registerListener(this, new PortalsMessageListener());
         proxy.getPluginManager().registerListener(this, new SpawnListener());
         proxy.getPluginManager().registerListener(this, new SpawnMessageListener());

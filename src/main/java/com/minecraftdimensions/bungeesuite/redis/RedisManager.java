@@ -3,6 +3,7 @@ package com.minecraftdimensions.bungeesuite.redis;
 import com.minecraftdimensions.bungeesuite.managers.*;
 import com.minecraftdimensions.bungeesuite.objects.Location;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import redis.clients.jedis.*;
 
 import java.time.Duration;
@@ -80,13 +81,22 @@ public class RedisManager {
                                 TeleportManager.acceptTeleportRequest(PlayerManager.getPlayer(args[1]));
                             } else if (args[0].equalsIgnoreCase("TeleportToLocation")) {
                                 String[] locs = args[2].split("~!~");
-                                TeleportManager.teleportPlayerToLocation(PlayerManager.getPlayer(args[1]), new Location(ProxyServer.getInstance().getPlayer(args[1]).getServer().getInfo(), locs[0], Double.parseDouble(locs[1]), Double.parseDouble(locs[2]), Double.parseDouble(locs[3])));
+                                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(args[1]);
+                                if (player != null) {
+                                    TeleportManager.teleportPlayerToLocation(PlayerManager.getPlayer(args[1]), new Location(player.getServer().getInfo(), locs[0], Double.parseDouble(locs[1]), Double.parseDouble(locs[2]), Double.parseDouble(locs[3])));
+                                }
                             } else if (args[0].equalsIgnoreCase("PlayersTeleportBackLocation")) {
-                                TeleportManager.setPlayersTeleportBackLocation(PlayerManager.getPlayer(args[1]), new Location(ProxyServer.getInstance().getPlayer(args[1]).getServer().getInfo(), args[2], Double.parseDouble(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5])));
+                                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(args[1]);
+                                if (player != null) {
+                                    TeleportManager.setPlayersTeleportBackLocation(PlayerManager.getPlayer(args[1]), new Location(player.getServer().getInfo(), args[2], Double.parseDouble(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5])));
+                                }
                             } else if (args[0].equalsIgnoreCase("PlayersDeathBackLocation")) {
-                                TeleportManager.setPlayersDeathBackLocation(PlayerManager.getPlayer(args[1]), new Location(ProxyServer.getInstance().getPlayer(args[1]).getServer().getInfo(), args[2], Double.parseDouble(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5])));
+                                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(args[1]);
+                                if (player != null) {
+                                    TeleportManager.setPlayersDeathBackLocation(PlayerManager.getPlayer(args[1]), new Location(player.getServer().getInfo(), args[2], Double.parseDouble(args[3]), Double.parseDouble(args[4]), Double.parseDouble(args[5])));
+                                }
                             } else if (args[0].equalsIgnoreCase("TeleportToPlayer")) {
-                                TeleportManager.teleportPlayerToPlayer(args[1], args[2], args[2], Boolean.parseBoolean(args[3]), Boolean.parseBoolean(args[4]));
+                                TeleportManager.teleportPlayerToPlayer(args[1], args[2], args[3], Boolean.parseBoolean(args[4]), Boolean.parseBoolean(args[5]));
                             } else if (args[0].equalsIgnoreCase("TpaHereRequest")) {
                                 TeleportManager.requestPlayerTeleportToYou(args[1], args[2], Integer.parseInt(args[3]));
                             } else if (args[0].equalsIgnoreCase("TpaRequest")) {
@@ -100,7 +110,7 @@ public class RedisManager {
                             } else if (args[0].equalsIgnoreCase("ToggleTeleports")) {
                                 TeleportManager.togglePlayersTeleports(PlayerManager.getPlayer(args[1]));
                             }
-                        } else if (channel.equalsIgnoreCase("HOME_REQUEST")) {
+                        } else if (channel.equalsIgnoreCase("HOMES_REQUEST")) {
                             ProxyServer.getInstance().getLogger().info("HOME REDIS REQUEST: " + message);
 
                             if (args[0].equalsIgnoreCase("deletehome")) {
@@ -109,7 +119,7 @@ public class RedisManager {
                                 HomesManager.sendPlayerToHome(PlayerManager.getPlayer(args[1]), args[2], Integer.parseInt(args[3]));
                             } else if (args[0].equalsIgnoreCase("setplayershome")) {
                                 HomesManager.createNewHome(args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), args[4], new Location(ProxyServer.getInstance().getPlayer(args[1]).getServer().getInfo().getName(), args[5], Double.parseDouble(args[6]), Double.parseDouble(args[7]), Double.parseDouble(args[8]), Float.parseFloat(args[9]), Float.parseFloat(args[9])));
-                            } else if (args[0].equalsIgnoreCase("getin.readInt()homeslist")) {
+                            } else if (args[0].equalsIgnoreCase("gethomeslist")) {
                                 HomesManager.listPlayersHomes(PlayerManager.getPlayer(args[1]));
                             } else if (args[0].equalsIgnoreCase("sendversion")) {
                                 LoggingManager.log(args[1]);
@@ -121,13 +131,13 @@ public class RedisManager {
                         ex.printStackTrace();
                     }
                 }
-            }, "WARP_REQUEST", "TELEPORT_REQUEST");
+            }, "WARP_REQUEST", "TELEPORT_REQUEST", "HOMES_REQUEST");
         });
     }
 
     public void publish(String data, String channel) {
         CompletableFuture.runAsync(() -> {
-            ProxyServer.getInstance().getLogger().info("WARP REDIS PUBLISH: " + data + " (" + channel + ")");
+            ProxyServer.getInstance().getLogger().info("REDIS PUBLISH: " + data + " (" + channel + ")");
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.publish(channel, data);
             }

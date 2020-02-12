@@ -55,6 +55,7 @@ public class TeleportManager {
         pendingTeleportsTPA.put(bt, bp);
         bp.sendMessage(Messages.TELEPORT_REQUEST_SENT);
         bt.sendMessage(Messages.PLAYER_REQUESTS_TO_TELEPORT_TO_YOU.replace("{player}", bp.getDisplayingName()));
+        CooldownManager.getInstance().setCooldown("TPA", bt.getProxiedPlayer().getUniqueId(), LocalDateTime.now());
         ProxyServer.getInstance().getScheduler().schedule(BungeeSuite.instance, new Runnable() {
             @Override
             public void run() {
@@ -62,7 +63,6 @@ public class TeleportManager {
                     if (!pendingTeleportsTPA.get(bt).equals(bp)) {
                         return;
                     }
-                    CooldownManager.getInstance().setCooldown("TPA", bt.getProxiedPlayer().getUniqueId(), LocalDateTime.now());
                     if (bp != null) {
                         bp.sendMessage(Messages.TPA_REQUEST_TIMED_OUT.replace("{player}", bt.getDisplayingName()));
                     }
