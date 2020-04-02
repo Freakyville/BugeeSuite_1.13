@@ -25,6 +25,8 @@ public class MainConfig {
     public static String redis_password = config.getString( "Redis.Password", "password" );
     public static int redis_timeout = config.getInt( "Redis.Timeout", 5000 );
 
+    public static boolean cooldownEnabled = config.getBoolean("cooldownEnabled", false);
+
     public static void reloadConfig() {
         config = null;
         config = new Config( configpath );

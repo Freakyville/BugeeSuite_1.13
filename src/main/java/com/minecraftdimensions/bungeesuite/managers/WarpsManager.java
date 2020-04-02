@@ -1,6 +1,7 @@
 package com.minecraftdimensions.bungeesuite.managers;
 
 import com.minecraftdimensions.bungeesuite.BungeeSuite;
+import com.minecraftdimensions.bungeesuite.configs.MainConfig;
 import com.minecraftdimensions.bungeesuite.objects.BSPlayer;
 import com.minecraftdimensions.bungeesuite.objects.Location;
 import com.minecraftdimensions.bungeesuite.objects.Messages;
@@ -155,13 +156,15 @@ public class WarpsManager {
                 return;
             }
         }
-        if (!sender.equalsIgnoreCase("CONSOLE")) {
-            if (CooldownManager.getInstance().isOnCooldown("WARP", cd, s.getProxiedPlayer().getUniqueId())) {
-                s.sendMessage(Messages.COOLDOWN.replace("{cooldown}", ""));
-                return;
+        if(MainConfig.cooldownEnabled){
+            if (!sender.equalsIgnoreCase("CONSOLE")) {
+                if (CooldownManager.getInstance().isOnCooldown("WARP", cd, s.getProxiedPlayer().getUniqueId())) {
+                    s.sendMessage(Messages.COOLDOWN.replace("{cooldown}", ""));
+                    return;
+                }
             }
+            CooldownManager.getInstance().setCooldown("WARP", s.getProxiedPlayer().getUniqueId(), LocalDateTime.now());
         }
-        CooldownManager.getInstance().setCooldown("WARP", s.getProxiedPlayer().getUniqueId(), LocalDateTime.now());
         Location l = w.getLocation();
         p.sendMessage(Messages.PLAYER_WARPED.replace("{warp}", w.getName()));
         if (!p.equals(s)) {
