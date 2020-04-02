@@ -157,7 +157,7 @@ public class WarpsManager {
         }
         if (!sender.equalsIgnoreCase("CONSOLE")) {
             if (CooldownManager.getInstance().isOnCooldown("WARP", cd, s.getProxiedPlayer().getUniqueId())) {
-                s.sendMessage(Messages.COOLDOWN.replace("{cooldown}", ""));
+                s.sendMessage(Messages.COOLDOWN.replace("{cooldown}", CooldownManager.getInstance().getRemaining("WARP", cd, s.getProxiedPlayer().getUniqueId())));
                 return;
             }
         }

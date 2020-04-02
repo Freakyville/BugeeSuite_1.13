@@ -49,7 +49,7 @@ public class TeleportManager {
             return;
         }
         if (CooldownManager.getInstance().isOnCooldown("TPA", cd, bp.getProxiedPlayer().getUniqueId())) {
-            bp.sendMessage(Messages.COOLDOWN.replace("{cooldown}", ""));
+            bp.sendMessage(Messages.COOLDOWN.replace("{cooldown}", CooldownManager.getInstance().getRemaining("TPA", cd, bp.getProxiedPlayer().getUniqueId())));
             return;
         }
         pendingTeleportsTPA.put(bt, bp);
@@ -95,7 +95,7 @@ public class TeleportManager {
             return;
         }
         if (CooldownManager.getInstance().isOnCooldown("TPAHERE", cd, bp.getProxiedPlayer().getUniqueId())) {
-            bp.sendMessage(Messages.COOLDOWN.replace("{cooldown}", ""));
+            bp.sendMessage(Messages.COOLDOWN.replace("{cooldown}", CooldownManager.getInstance().getRemaining("TPAHERE", cd, bp.getProxiedPlayer().getUniqueId())));
             return;
         }
         pendingTeleportsTPAHere.put(bt, bp);
@@ -121,18 +121,18 @@ public class TeleportManager {
         }, expireTime, TimeUnit.SECONDS);
     }
 
-    public static void acceptTeleportRequest(BSPlayer player) {
+    public static void acceptTeleportRequest(BSPlayer player, boolean vanish) {
         if (pendingTeleportsTPA.containsKey(player)) {
             BSPlayer target = pendingTeleportsTPA.get(player);
             target.sendMessage(Messages.TELEPORTED_TO_PLAYER.replace("{player}", player.getDisplayingName()));
             player.sendMessage(Messages.PLAYER_TELEPORTED_TO_YOU.replace("{player}", target.getDisplayingName()));
-            teleportPlayerToPlayer(target, player);
+            teleportPlayerToPlayer(target, player, vanish);
             pendingTeleportsTPA.remove(player);
         } else if (pendingTeleportsTPAHere.containsKey(player)) {
             BSPlayer target = pendingTeleportsTPAHere.get(player);
             player.sendMessage(Messages.TELEPORTED_TO_PLAYER.replace("{player}", target.getDisplayingName()));
             target.sendMessage(Messages.PLAYER_TELEPORTED_TO_YOU.replace("{player}", player.getDisplayingName()));
-            teleportPlayerToPlayer(player, target);
+            teleportPlayerToPlayer(player, target, vanish);
             pendingTeleportsTPAHere.remove(player);
         } else {
             player.sendMessage(Messages.NO_TELEPORTS);
@@ -181,7 +181,7 @@ public class TeleportManager {
         }
     }
 
-    public static void sendPlayerToLastBack(BSPlayer player, boolean death, boolean teleport) {
+    public static void sendPlayerToLastBack(BSPlayer player, boolean death, boolean teleport, boolean vanish) {
         if (player.hasDeathBackLocation() || player.hasTeleportBackLocation()) {
             player.sendMessage(Messages.SENT_BACK);
         } else {
@@ -189,12 +189,12 @@ public class TeleportManager {
         }
         if (death && teleport) {
             if (player.hasDeathBackLocation() || player.hasTeleportBackLocation()) {
-                teleportPlayerToLocation(player, player.getLastBackLocation());
+                teleportPlayerToLocation(player, player.getLastBackLocation(), vanish);
             }
         } else if (death) {
-            teleportPlayerToLocation(player, player.getDeathBackLocation());
+            teleportPlayerToLocation(player, player.getDeathBackLocation(), vanish);
         } else if (teleport) {
-            teleportPlayerToLocation(player, player.getTeleportBackLocation());
+            teleportPlayerToLocation(player, player.getTeleportBackLocation(), vanish);
         }
     }
 
@@ -208,7 +208,7 @@ public class TeleportManager {
         }
     }
 
-    public static void teleportPlayerToPlayer(BSPlayer p, BSPlayer t) {
+    public static void teleportPlayerToPlayer(BSPlayer p, BSPlayer t, boolean vanish) {
 
 
         if (teleportWait >= 1) {
@@ -222,7 +222,8 @@ public class TeleportManager {
                 sb.append("TeleportToPlayer").append(";");
                 sb.append(t.getProxiedPlayer().getServer().getInfo().getName()).append(";");
                 sb.append(p.getName()).append(";");
-                sb.append(t.getName());
+                sb.append(t.getName()).append(";");
+                sb.append(vanish);
                 RedisManager.getInstance().publish(sb.toString(), "TELEPORT_RESPONSE");
                 if (!p.getServer().getInfo().equals(t.getServer().getInfo())) {
                     p.getProxiedPlayer().connect(t.getServer().getInfo());
@@ -232,7 +233,7 @@ public class TeleportManager {
         }, teleportWait, TimeUnit.SECONDS);
     }
 
-    public static void tpAll(String sender, String target) {
+    public static void tpAll(String sender, String target, boolean vanish) {
         BSPlayer p = PlayerManager.getPlayer(sender);
         BSPlayer t = PlayerManager.getPlayer(target);
         if (t == null) {
@@ -241,18 +242,19 @@ public class TeleportManager {
         }
         for (BSPlayer player : PlayerManager.getPlayers()) {
             if (!player.equals(p)) {
-                teleportPlayerToPlayer(player, t);
+                teleportPlayerToPlayer(player, t, vanish);
             }
             player.sendMessage(Messages.ALL_PLAYERS_TELEPORTED.replace("{player}", t.getDisplayingName()));
         }
     }
 
-    public static void teleportPlayerToLocation(BSPlayer p, Location t) {
+    public static void teleportPlayerToLocation(BSPlayer p, Location t, boolean vanish) {
         StringBuilder sb = new StringBuilder();
         sb.append("TeleportToLocation").append(";");
         sb.append(t.getServer().getName()).append(";");
         sb.append(p.getName()).append(";");
-        sb.append(t.serialise());
+        sb.append(t.serialise()).append(";");
+        sb.append(vanish);
         RedisManager.getInstance().publish(sb.toString(), "TELEPORT_RESPONSE");
         if (!p.getServer().getInfo().equals(t.getServer())) {
             p.getProxiedPlayer().connect(t.getServer());
@@ -263,7 +265,7 @@ public class TeleportManager {
         BungeeSuite.proxy.getScheduler().runAsync(BungeeSuite.instance, new SendPluginMessage(OUTGOING_CHANNEL, server, b));
     }
 
-    public static void teleportPlayerToPlayer(String sender, String player, String target, boolean silent, boolean bypass) {
+    public static void teleportPlayerToPlayer(String sender, String player, String target, boolean silent, boolean bypass, boolean vanish) {
         BSPlayer s = PlayerManager.getPlayer(sender);
         BSPlayer p = PlayerManager.getSimilarPlayer(player);
         BSPlayer t = PlayerManager.getSimilarPlayer(target);
@@ -280,7 +282,7 @@ public class TeleportManager {
         if (!(sender.equals(player) || sender.equals(target))) {
             s.sendMessage(Messages.PLAYER_TELEPORTED.replace("{player}", p.getName()).replace("{target}", t.getName()));
         }
-        teleportPlayerToPlayer(p, t);
+        teleportPlayerToPlayer(p, t, vanish);
         if (!silent) {
             t.sendMessage(Messages.PLAYER_TELEPORTED_TO_YOU.replace("{player}", p.getName()));
         }

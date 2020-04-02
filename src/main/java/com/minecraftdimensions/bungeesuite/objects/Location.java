@@ -118,8 +118,4 @@ public class Location {
     public String serialise() {
         return server.getName() + "~!~" + world + "~!~" + x + "~!~" + y + "~!~" + z + "~!~" + yaw + "~!~" + pitch;
     }
-
-    public void teleportPlayerToLocation( BSPlayer player ) {
-        TeleportManager.teleportPlayerToLocation( player, this );
-    }
 }

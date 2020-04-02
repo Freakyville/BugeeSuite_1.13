@@ -132,7 +132,7 @@ public class HomesManager {
             return;
         }
         if (CooldownManager.getInstance().isOnCooldown("HOME", cd, player.getProxiedPlayer().getUniqueId())) {
-            player.sendMessage(Messages.COOLDOWN.replace("{cooldown}", ""));
+            player.sendMessage(Messages.COOLDOWN.replace("{cooldown}", CooldownManager.getInstance().getRemaining("HOME", cd, player.getProxiedPlayer().getUniqueId())));
             return;
         }
         
@@ -144,7 +144,7 @@ public class HomesManager {
             @Override
             public void run() {
                 Location l = h.loc;
-                TeleportManager.teleportPlayerToLocation(player, h.loc);
+//                TeleportManager.teleportPlayerToLocation(player, h.loc);
                 CooldownManager.getInstance().setCooldown("HOME", player.getProxiedPlayer().getUniqueId(), LocalDateTime.now());
                 if ( !player.getServer().getInfo().equals( l.getServer() ) ) {
                     player.getProxiedPlayer().connect( l.getServer() );
